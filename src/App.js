@@ -1,25 +1,39 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from "react";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+function GetProducts({product_id}) {
+  const loadJSON = key =>
+    key && JSON.parse(localStorage.getItem(key));
+  const saveJSON = (key, data) =>
+    localStorage.setItem(key, JSON.stringify(data));
+  const [data, setData] = useState(loadJSON(`product:${product_id}`));
+  var url
+  if(product_id) 
+    url="http://localhost:5000/api/products/" + product_id
+  else
+    url="http://localhost:5000/api/products"
+
+  useEffect(() => {
+    if (!data) return;
+    if (data.id === product_id) return;
+    const { product } = data;
+    saveJSON(`product:${product_id}`, {product});
+  }, [data]);
+
+  useEffect(() => {
+    if (!product_id) return;
+    if (data && data.id === product_id) return;
+    fetch(`${url}`)
+      .then(response => response.json())
+      .then(setData)
+      .catch(console.error);
+  }, [product_id]);
+
+  if (data)
+    return <pre>{JSON.stringify(data, null, 2)}</pre>;
+
+  return null;
 }
 
-export default App;
+export default function App() {
+  return <GetProducts product_id="5"/>;
+}
